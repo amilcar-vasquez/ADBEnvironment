@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	_ "github.com/lib/pq"
 	"html/template"
 	"log/slog"
 	"os"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
 type application struct {
@@ -23,6 +24,9 @@ func main() {
 
 	flag.Parse()
 
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	//call the db open function
 	db, err := openDB(*dsn)
 	if err != nil {
 		logger.Error(err.Error())
@@ -32,32 +36,17 @@ func main() {
 	//release the db resources before the main function exits
 	defer db.Close()
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger.Info("Database connection successful")
+
 	templateCache, err := newTemplateCache()
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
 
-	db, err := openDB(*dsn)
-
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
-
-	logger.Info("database connection pool established")
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
-
-	defer db.Close()
-
-	// create an instance of the application struct
 	app := &application{
-		logger: logger,
-		addr:   addr,
+		addr:          addr,
+		logger:        logger,
 		templateCache: templateCache,
 	}
 
@@ -73,7 +62,7 @@ func openDB(dsn string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	//set the context to ensure DB operations don't take too long
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -82,6 +71,5 @@ func openDB(dsn string) (*sql.DB, error) {
 		db.Close()
 		return nil, err
 	}
-
 	return db, nil
 }
