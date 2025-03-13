@@ -14,14 +14,13 @@ var bufferPool = sync.Pool{
 }
 
 func (app *application) render(w http.ResponseWriter, status int, page string, data *TemplateData) error {
-
 	buf := bufferPool.Get().(*bytes.Buffer)
 	buf.Reset()
 	defer bufferPool.Put(buf)
 
 	ts, ok := app.templateCache[page]
 	if !ok {
-		err := fmt.Errorf("The template %s does not exist", page)
+		err := fmt.Errorf("the template %s does not exist", page)
 		app.logger.Error("Template does not exist", "template", page, "error", err)
 
 		return err

@@ -1,4 +1,5 @@
 ## Filename Makefile
+include .envrc
 
 .PHONY: run/tests
 run/tests: vet
@@ -14,4 +15,18 @@ vet: fmt
 
 .PHONY: run
 run: vet
-	go run ./cmd/web -addr=":4000"
+	go run ./cmd/web -addr=":4000" -dsn=${FEEDBACK_DB_DSN}
+
+.PHONY: db/psql
+db/psql:
+	psql ${FEEDBACK_DB_DSN}
+
+.PHONY: db/migrations/new
+db/migrations/new:
+		@echo "Creating new migration for $(name)..."
+		migrate create -seq -ext=.sql -dir ./migrations $(name)
+
+.PHONY: db/migrations/up
+db/migrations/up:
+		@echo "Applying all up migrations..."
+		migrate -path ./migrations -database ${FEEDBACK_DB_DSN} up

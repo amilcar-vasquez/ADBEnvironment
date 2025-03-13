@@ -5,6 +5,7 @@ type TemplateData struct {
 	HeaderText string
 }
 
+// factory function to create a new instance of TemplateData
 func NewTemplateData() *TemplateData {
 	return &TemplateData{
 		Title:      "Default Title",

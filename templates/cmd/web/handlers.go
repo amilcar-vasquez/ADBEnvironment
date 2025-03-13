@@ -1,29 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	page := "home.tmpl"
-	ts, ok := app.templateCache[page]
-	if !ok {
-		err := fmt.Errorf("The template %s does not exist", page)
-		app.logger.Error("Template does not exist", "page", page, "error", err, "url", r.URL.Path)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+	data := NewTemplateData()
 
-	data := map[string]interface{}{
-		"Title":      "Let's explore Dependency Injection in Go.",
-		"HeaderText": "Welcome to the Dependency Injection in Go.",
-	}
+	data.Title = "Welcome"
+	data.HeaderText = "Questions? Comments? Feedback?"
 
-	err := ts.Execute(w, data)
+	err := app.render(w, http.StatusOK, "home.tmpl", data)
+
 	if err != nil {
-		log.Print(err.Error())
+		app.logger.Error("failed to render template", "error", err, "template", "home.tmpl", "url", r.URL.Path, "method", r.Method)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
